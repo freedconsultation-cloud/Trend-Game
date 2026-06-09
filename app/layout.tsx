@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trend Game — Higher or Lower",
-  description: "Guess which trending topic had more Wikipedia views yesterday",
+  title: "Google Trend Game",
+  description: "Higher or Lower game based on today's trending topics. Guess which has more Wikipedia views and build your streak.",
 };
 
 export default function RootLayout({
