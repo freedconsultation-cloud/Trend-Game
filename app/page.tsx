@@ -198,6 +198,7 @@ export default function TrendGame() {
         style={{ borderBottom: "1px solid var(--border)" }}
       >
         <span className="font-bold font-mono text-sm" style={{ color: "var(--accent)" }}>{"</>"}</span>
+        <span className="text-xs hidden sm:inline" style={{ color: "var(--border)" }}>trend-game-freed.vercel.app</span>
         <div className="flex items-center gap-4 sm:gap-5">
           <div className="text-center">
             <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Streak</p>
