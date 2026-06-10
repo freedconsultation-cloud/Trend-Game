@@ -212,7 +212,7 @@ export default function TrendGame() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs hidden sm:inline" style={{ color: "var(--border)" }}>wikipedia-trends.vercel.app</span>
-          <a href="https://freed-projects.vercel.app" className="text-xs hover:opacity-70 transition-opacity" style={{ color: "var(--text-muted)" }}>
+          <a href="https://freedprojects.vercel.app" className="text-xs hover:opacity-70 transition-opacity" style={{ color: "var(--text-muted)" }}>
             ← Portfolio
           </a>
         </div>
