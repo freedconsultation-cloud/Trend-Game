@@ -9,49 +9,58 @@ function formatViews(n: number): string {
 }
 
 export async function GET() {
-  // Use yesterday — today's data isn't complete yet
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+  // Try yesterday first; fall back to 2 days ago if data isn't available yet
+  for (let daysBack = 1; daysBack <= 3; daysBack++) {
+    const d = new Date();
+    d.setDate(d.getDate() - daysBack);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
 
-  const topRes = await fetch(
-    `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${year}/${month}/${day}`,
-    { next: { revalidate: 3600 } }
-  );
+    const topRes = await fetch(
+      `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${year}/${month}/${day}`,
+      { cache: "no-store" }
+    );
 
-  if (!topRes.ok) {
-    return NextResponse.json({ error: "Failed to fetch Wikipedia top pages" }, { status: 500 });
-  }
+    if (!topRes.ok) continue;
 
-  const topData = await topRes.json();
-  const articles: { article: string; views: number }[] = topData.items[0].articles
-    .filter((a: any) => !SKIP.test(a.article))
-    .slice(0, 30);
+    const topData = await topRes.json();
+    const articles: { article: string; views: number }[] =
+      topData?.items?.[0]?.articles
+        ?.filter((a: any) => !SKIP.test(a.article))
+        ?.slice(0, 30) ?? [];
 
-  // Batch-fetch thumbnails from Wikipedia API
-  const titles = articles.map((a) => decodeURIComponent(a.article.replace(/_/g, " "))).join("|");
-  const imgRes = await fetch(
-    `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=pageimages&pithumbsize=600&format=json&origin=*`,
-    { next: { revalidate: 3600 } }
-  );
-  const imgData = await imgRes.json();
+    if (articles.length < 5) continue;
 
-  // Build title → imageUrl map
-  const imageMap: Record<string, string> = {};
-  for (const page of Object.values(imgData.query.pages) as any[]) {
-    if (page.thumbnail?.source) {
-      imageMap[page.title.replace(/ /g, "_")] = page.thumbnail.source;
+    // Batch-fetch thumbnails — fail gracefully if this errors
+    const imageMap: Record<string, string> = {};
+    try {
+      const titles = articles
+        .map((a) => decodeURIComponent(a.article.replace(/_/g, " ")))
+        .join("|");
+      const imgRes = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=pageimages&pithumbsize=600&format=json&origin=*`,
+        { cache: "no-store" }
+      );
+      const imgData = await imgRes.json();
+      for (const page of Object.values(imgData.query?.pages ?? {}) as any[]) {
+        if (page.thumbnail?.source) {
+          imageMap[page.title.replace(/ /g, "_")] = page.thumbnail.source;
+        }
+      }
+    } catch {
+      // Images are optional — proceed without them
     }
+
+    const trends = articles.map((a) => ({
+      query: decodeURIComponent(a.article.replace(/_/g, " ")),
+      traffic: formatViews(a.views),
+      trafficNum: a.views,
+      imageUrl: imageMap[a.article] ?? "",
+    }));
+
+    return NextResponse.json({ trends });
   }
 
-  const trends = articles.map((a) => ({
-    query: decodeURIComponent(a.article.replace(/_/g, " ")),
-    traffic: formatViews(a.views),
-    trafficNum: a.views,
-    imageUrl: imageMap[a.article] ?? "",
-  }));
-
-  return NextResponse.json({ trends });
+  return NextResponse.json({ error: "Failed to fetch Wikipedia top pages" }, { status: 500 });
 }
