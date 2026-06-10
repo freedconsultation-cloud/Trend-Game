@@ -198,7 +198,6 @@ export default function TrendGame() {
         style={{ borderBottom: "1px solid var(--border)" }}
       >
         <span className="font-bold font-mono text-sm" style={{ color: "var(--accent)" }}>{"</>"}</span>
-        <span className="text-xs hidden sm:inline" style={{ color: "var(--border)" }}>wikipedia-trends.vercel.app</span>
         <div className="flex items-center gap-4 sm:gap-5">
           <div className="text-center">
             <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Streak</p>
@@ -211,9 +210,12 @@ export default function TrendGame() {
             </div>
           )}
         </div>
-        <a href="https://freed-projects.vercel.app" className="text-xs hover:opacity-70 transition-opacity" style={{ color: "var(--text-muted)" }}>
-          ← Portfolio
-        </a>
+        <div className="flex items-center gap-4">
+          <span className="text-xs hidden sm:inline" style={{ color: "var(--border)" }}>wikipedia-trends.vercel.app</span>
+          <a href="https://freed-projects.vercel.app" className="text-xs hover:opacity-70 transition-opacity" style={{ color: "var(--text-muted)" }}>
+            ← Portfolio
+          </a>
+        </div>
       </nav>
 
       {/* Prompt */}
